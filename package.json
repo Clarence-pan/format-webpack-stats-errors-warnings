@@ -1,0 +1,30 @@
+{
+  "name": "format-webpack-stats-errors-warnings",
+  "version": "1.0.0",
+  "description": "A normalized format for webpack's errors and warnings",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Clarence-pan/format-webpack-stats-errors-warnings.git"
+  },
+  "keywords": [
+    "webpack",
+    "errors",
+    "warnings",
+    "format"
+  ],
+  "files": [
+    "index.js",
+    "src/data-get.js",
+    "src/format-webpack-stats-errors-warnings.js"
+  ],
+  "author": "clarencep",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Clarence-pan/format-webpack-stats-errors-warnings/issues"
+  },
+  "homepage": "https://github.com/Clarence-pan/format-webpack-stats-errors-warnings#readme"
+}
