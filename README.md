@@ -49,7 +49,7 @@ Webpack's:
 
 ```
 Module not found: Error: Can't resolve 'something-not-exists' in 'xxxx\src'
- @ D:/workspaces/admin.mainaer/~/.6.4.0@babel-loader/lib!./~/.11.1.4@vue-loader/lib/selector.js?type=script&index=0!./src/App.vue 11:0-30
+ @ xxxxr/~/.6.4.0@babel-loader/lib!./~/.11.1.4@vue-loader/lib/selector.js?type=script&index=0!./src/App.vue 11:0-30
  @ ./src/App.vue
  @ ./src/main.js
 ```
@@ -57,7 +57,7 @@ Module not found: Error: Can't resolve 'something-not-exists' in 'xxxx\src'
 This package's:
 
 ```
-!>error: src\App.vue:32:0: Module not found: Error: Can't resolve 'something-not-exists' in 'xxxx\src'
+!>error: src\App.vue:32,13~33: Module not found: Error: Can't resolve 'something-not-exists' in 'xxxx\src'
 ```
 
 Note: this package combined all errors into one line, and add line number and column number.
@@ -75,12 +75,14 @@ You can use the following as `problemMatcher` in your `tasks.json` of vscode
         "${workspaceRoot}"
     ],
     "pattern": {
-        "regexp": "^!>(\\w+): (\\S+)?:(\\d+):(\\d+): (.*)$",
+        "regexp": "^!>(\\w+): (\\S+)?:(\\d+),(\\d+)(?:~(?:(\\d+),)?(\\d+))?: (.*)$",
         "severity": 1,
         "file": 2,
         "line": 3,
         "column": 4,
-        "message": 5
+        "endLine": 5,
+        "endColumn": 6,
+        "message": 7
     }
 }
 ```
