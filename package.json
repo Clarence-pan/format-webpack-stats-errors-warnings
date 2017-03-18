@@ -1,6 +1,6 @@
 {
   "name": "format-webpack-stats-errors-warnings",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A normalized format for webpack's errors and warnings",
   "main": "index.js",
   "scripts": {
