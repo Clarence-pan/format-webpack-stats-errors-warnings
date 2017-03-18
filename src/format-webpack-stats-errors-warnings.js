@@ -3,7 +3,6 @@ const fs = require('fs')
 const data_get = require('./data-get')
 
 const MODULE_NOT_FOUND_ERR_MSG_PATTERN = /Can't resolve ['"](\S+?)['"]/
-const VUE_V_FOR_EXPRESSION = /v-for=['"].*?['"]/
 
 /**
  * Format webpack's errors and warnings in webpack stats for better matching in editors like vscode
@@ -33,29 +32,36 @@ function _formatErrorsWarnings(level, list, projectRoot){
         let file, line, col, endLine, endCol, message
         try{
             // resolve  the relative path 
-            file = data_get(x, 'module.resource')
-            file = file && projectRoot ? path.relative(projectRoot, file) : ''
+            let fullFilePath = data_get(x, 'module.resource')
+            file = fullFilePath && projectRoot ? path.relative(projectRoot, fullFilePath) : ''
             // file = file.replace(/[\\//]/g, '/')
 
             line = data_get(x, 'error.error.loc.line') || 0
             col = data_get(x, 'error.error.loc.column') || 0
 
             // only need first line of message
-            message = x.message + ''
-            let crPos = message.indexOf("\n")
+            let fullMessage = (x.message + '').trim()
+            let crPos = fullMessage.indexOf("\n")
             if (crPos >= 0){
-                message = message.substring(0, crPos)
+                message = fullMessage.substring(0, crPos)
+            } else {
+                message = fullMessage
             }
 
             if (!line){
                 let linesColsInfo
                 let m
                 if (x.name === 'ModuleNotFoundError'
-                    && (m = x.message.match(MODULE_NOT_FOUND_ERR_MSG_PATTERN))){
-                    linesColsInfo = _resolveLineColNumInFile(x.module.resource, m[1])
-                } else if (x.message.indexOf('component lists rendered with v-for should have explicit keys') > 0
-                    && (m = x.message.match(VUE_V_FOR_EXPRESSION))){
-                    linesColsInfo = _resolveLineColNumInFile(x.module.resource, m[0])
+                    && (m = fullMessage.match(MODULE_NOT_FOUND_ERR_MSG_PATTERN))){
+                    linesColsInfo = _resolveLineColNumInFile(fullFilePath, m[1])
+                } else if (fullMessage.indexOf('component lists rendered with v-for should have explicit keys') > 0
+                    && (m = fullMessage.match(/([a-zA-Z-_]+)\s+(v-for=['"].*?['"])/))){
+                    linesColsInfo = _resolveLineColNumInFile(fullFilePath, m[2], {after: m[1]})
+                } else if (m = fullMessage.match(/export ['"](\S+?)['"] was not found/)){
+                    linesColsInfo = _resolveLineColNumInFile(fullFilePath, m[1], {after: 'import'})
+                } else if (m = fullMessage.match(/Error compiling template:((?:.|[\r\n])*)- Component template/m)){
+                    linesColsInfo = _resolveLineColNumInFile(fullFilePath, m[1].trim())
+                    message = fullMessage.replace(/\n/g, ' ')
                 }
 
                 if (linesColsInfo){
@@ -68,7 +74,7 @@ function _formatErrorsWarnings(level, list, projectRoot){
 
             let endLinesCols = (endLine || endCol) ? ('~' + (endLine || '') + (endLine ? ',' : '') + (endCol || '0')) : ''
 
-            return `!>${level}: ${file}:${line},${col}${endLinesCols}: ${message}`            
+            return `!>${level}: ${file}:${line},${col}${endLinesCols}: ${message || '@see output window'}`            
         } catch (e){
             console.warn(e)
             return ''
@@ -79,13 +85,27 @@ function _formatErrorsWarnings(level, list, projectRoot){
 /**
  * Resolve the line num of a message in a file
  */
-function _resolveLineColNumInFile(file, message){
+function _resolveLineColNumInFile(file, message, options={}){
     if (!message){
         return {line: 0, col: 0}
     }
 
     let fileContent = fs.readFileSync(file, 'utf8')
-    let pos = fileContent.indexOf(message)
+
+    let beyondPos = 0
+
+    switch (typeof options.after){
+        case 'string':
+            beyondPos = fileContent.indexOf(options.after)
+            break
+        case 'number':
+            beyondPos = options.after
+            break
+        default:
+            break
+    }
+
+    let pos = fileContent.indexOf(message, beyondPos >= 0 ? beyondPos : 0)
     if (pos <= 0){
         return {line: 0, col: 0}
     }
